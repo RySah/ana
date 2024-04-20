@@ -1,0 +1,61 @@
+; system.io
+
+;: reserve b outbuf 1024
+;: reserve b inbuf 1024
+
+; Expected:
+;   String length on top of stack (push)
+write:
+    pop  rsi           ; Saving the length into the "rsi" register
+    push 0             ; (Unused)
+    push 0             ; Number of chars written (Unused)
+    push rsi           ; Loading the number of chars to write
+    push outbuf        ; Pointer of the buffer
+    call WriteConsoleA ; Calling the write label from the windows API
+    ret
+    
+; Expected:
+;   String address (push)
+;   String length (push)
+write_bytes:
+    pop rsi              ; Loading the length of the string into rsi
+    pop rdi              ; Loading the string address into rdi
+    push outbuf          ; Pushing the address of outbuf onto the stack ("copy" args)
+    push rdi             ; Pushing the address of the string onto the stack ("copy" args)
+    call copy            ; Copying the data from the string into the outbuf
+    push rsi             ; Pushing the length of the string onto the stack ("write" args)
+    call write           ; Writing outbuf to the screen
+    ret
+
+copy:
+    pop rdi              ; Pop string address from the stack into rdi
+    mov al, [rdi]        ; Load byte from string address into al
+    pop rsi              ; Pop buffer address from the stack into rsi
+    mov [rsi], al        ; Store byte from al into buffer address
+    
+    inc rdi              ; Increment destination pointer
+    inc rsi              ; Increment source pointer
+    
+    push rsi             ; Push updated buffer address onto the stack
+    push rdi             ; Push updated string address onto the stack
+    
+    cmp byte [rdi], 0    ; Compare byte at destination address with null terminator
+    jne copy             ; If not null, continue copying
+    
+    mov byte [rsi], 0    ; Null-terminate the destination string
+    ret                  ; Return from the procedure
+
+; Expected:
+;   No. bytes to read in stack (push)
+read:
+    pop  rsi             ; Saving the maximum amount of bytes that can be read
+    push 0               ; Output parameter
+    push rsi             ; Maximum input size
+    push inbuf           ; Pointer of the buffer
+    push dword -10       ; STD_INPUT_HANDLE
+    call ReadConsoleA
+    ret
+
+; Extern declarations for Windows API functions
+extern  WriteConsoleA
+extern  ReadConsoleA

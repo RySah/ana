@@ -1,0 +1,21 @@
+; system.dep
+
+;: define b fd
+;: define const STDOUT 1
+;: define const STDIN 2
+
+init_stdout:
+    mov fd, STDOUT
+    ret
+init_stdin:
+    mov fd, STDIN
+    ret
+
+error:
+    push 1
+    call exit
+
+exit:
+    mov eax, 1
+    pop ebx
+    syscall

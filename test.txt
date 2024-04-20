@@ -1,0 +1,13 @@
+import "dep/dep"
+import "system/io"
+
+byte msg = "Hello world"
+const len = $-msg
+
+call init_stdout
+
+push msg
+push len
+call write_bytes
+
+call exit

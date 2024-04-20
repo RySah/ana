@@ -1,0 +1,16 @@
+; system.dep
+
+init_stdout:
+    ret
+init_stdin:
+    ret
+
+error:
+    push 1
+    call exit
+
+exit:
+    call ExitProcess
+
+; Extern declarations for Windows API functions
+extern  ExitProcess

@@ -1,0 +1,30 @@
+; system.io
+
+;: reserve b outbuf 1024
+;: reserve b inbuf 1024
+
+; Expected:
+;   String length on top of stack (push)
+write:
+    pop  eax           ; Saving the length into the "eax" register
+    push 0             ; (Unused)
+    push 0             ; Number of chars written (Unused)
+    push eax           ; Loading the number of chars to write
+    push outbuf        ; Pointer of the buffer
+    call WriteConsoleA ; Calling the write label from the windows API
+    ret
+
+; Expected:
+;   No. bytes to read in stack (push)
+read:
+    pop eax              ; Saving the maximum amount of bytes that can be read
+    push 0               ; Output parameter
+    push eax             ; Maximum input size
+    push inbuf           ; Pointer of the buffer
+    push dword -10       ; STD_INPUT_HANDLE
+    call ReadConsoleA
+    ret
+
+; Extern declarations for Windows API functions
+extern  WriteConsoleA
+extern  ReadConsoleA

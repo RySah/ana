@@ -1,0 +1,56 @@
+; system.io
+
+;: reserve b outbuf 1024
+;: reserve b inbuf 1024
+
+; Expected:
+;   String length in stack (push)
+write:
+    mov eax, 1          ; Setting the syscall number for sys_write
+    mov edi, dword [fd] ; Loads the file descriptor from the variable 'fd'
+    mov rsi, outbuf     ; Loads the output as the address of the provided buffer that stores the string
+    pop rdx             ; Gets and loads the length of the string
+    syscall             ; Calling the kernel
+    ret
+
+; Expected:
+;   String address (push)
+;   String length (push)
+write_bytes:
+    pop rsi              ; Loading the length of the string into rsi
+    pop rdi              ; Loading the string address into rdi
+    push outbuf          ; Pushing the address of outbuf onto the stack ("copy" args)
+    push rdi             ; Pushing the address of the string onto the stack ("copy" args)
+    call copy            ; Copying the data from the string into the outbuf
+    push rsi             ; Pushing the length of the string onto the stack ("write" args)
+    call write           ; Writing outbuf to the screen
+    ret
+
+copy:
+    pop rdi              ; Pop string address from the stack into rdi
+    mov al, [rdi]        ; Load byte from string address into al
+    pop rsi              ; Pop buffer address from the stack into rsi
+    mov [rsi], al        ; Store byte from al into buffer address
+    
+    inc rdi              ; Increment destination pointer
+    inc rsi              ; Increment source pointer
+    
+    push rsi             ; Push updated buffer address onto the stack
+    push rdi             ; Push updated string address onto the stack
+    
+    cmp byte [rdi], 0    ; Compare byte at destination address with null terminator
+    jne copy             ; If not null, continue copying
+    
+    mov byte [rsi], 0    ; Null-terminate the destination string
+    ret                  ; Return from the procedure
+
+
+; Expected:
+;   No. bytes to read in stack (push)
+read:
+    mov eax, 0          ; Setting the syscall number for sys_read
+    mov edi, dword [fd] ; Loads the file descriptor from the variable 'fd'
+    mov rsi, inbuf      ; Loads the input buffer as the address of the provided buffer
+    pop rdx             ; Gets and loads the length of the bytes to be read
+    syscall             ; Calling the kernel
+    ret
